@@ -17,6 +17,7 @@
     "pixel-ide": "file:",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-type-animation": "^3.2.0",
     "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {

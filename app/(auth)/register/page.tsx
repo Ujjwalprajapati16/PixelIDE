@@ -7,6 +7,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Axios from '@/lib/Axios';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string({ message: 'Name is required' }).min(3),
@@ -29,9 +32,32 @@ const RegisterPage = () => {
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
+
+    const payload = {
+      name: values.name,
+      email: values.email,
+      password: values.password,
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await Axios.post("api/auth/register", payload)
+
+      if(response.status === 201) {
+        toast.success("Account created successfully")
+        form.reset()
+        router.push("/login")
+      }
+    } catch (error : any) {
+      toast.error(error?.response?.data?.message || "Something went wrong")
+    } finally {
+      setIsLoading(false);
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);

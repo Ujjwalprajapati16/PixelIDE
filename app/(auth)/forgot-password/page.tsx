@@ -22,7 +22,7 @@ const formSchema = z.object({
     .regex(/[@$!%*?&]/, { message: 'Password must contain at least one special character' }),
 });
 
-const LoginPage = () => {
+const ForgotPassword = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
@@ -31,26 +31,12 @@ const LoginPage = () => {
   const router = useRouter();
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    setIsLoading(true);
     
-    const result = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-
-    if(result?.error) {
-      toast.error(result.error);
-    } else {
-      toast.success("Login successful");
-      router.push("/dashboard");
-    }
-    setIsLoading(false);
   }
 
   return (
     <div className='lg:p-10 space-y-7'>
-      <h1 className='text-xl font-semibold text-center'>Login to your account</h1>
+      <h1 className='text-xl font-semibold text-center'>Forgot Password</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
           <FormField
@@ -68,40 +54,21 @@ const LoginPage = () => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Enter your password" {...field}
-                    disabled={isLoading}
-                    value={field.value ?? ""} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className='ml-auto w-fit -mt-3'>
-            <Link href={"/forgot-password"} className='text-primary dropdown-shadow-md hover:underline'>
-              <p>Forgot password?</p></Link>
-          </div>
           <Button
             disabled={isLoading}
             type="submit"
             className='w-full cursor-pointer'>
-            {isLoading ? 'Loading...' : 'Login'}
+            {isLoading ? 'Loading...' : 'Submit'}
           </Button>
         </form>
       </Form>
 
       <div className="max-w-md mx-auto">
-        <p>Don&apos;t have an account? {" "}
+        <p>Already have an account? {" "}
           <Link 
-          href={"/register"}
+          href={"/login"}
           className='text-primary drop-shadow-md'>
-            Create here
+            Login
           </Link>
         </p>
       </div>
@@ -109,4 +76,4 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage
+export default ForgotPassword

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { set } from 'mongoose';
 
 const formSchema = z.object({
   email: z.string({ message: 'Email is required' }).email().min(5).max(50),
@@ -30,6 +31,7 @@ const LoginPage = () => {
   const router = useRouter();
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
+    setIsLoading(true);
     
     const result = await signIn("credentials", {
       email: values.email,
@@ -43,6 +45,7 @@ const LoginPage = () => {
       toast.success("Login successful");
       router.push("/dashboard");
     }
+    setIsLoading(false);
   }
 
   return (

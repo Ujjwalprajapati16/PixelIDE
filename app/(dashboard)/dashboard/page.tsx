@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 const Dashboard = () => {
   return (
     <div>Dashboard
-    <Button onClick={() => signOut({callbackUrl: '/login'})}>Logout</Button>
+    <Button onClick={() => signOut()}>Logout</Button>
     </div>
   )
 }

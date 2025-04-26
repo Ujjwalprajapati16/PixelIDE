@@ -7,6 +7,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   email: z.string({ message: 'Email is required' }).email().min(5).max(50),
@@ -24,13 +27,22 @@ const LoginPage = () => {
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const router = useRouter();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    
+    const result = await signIn("credentials", {
+      email: values.email,
+      password: values.password,
+      redirect: false,
+    });
+
+    if(result?.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Login successful");
+      router.push("/dashboard");
+    }
   }
 
   return (

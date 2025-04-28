@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
             expiresIn: "1h", // 1 hour expiration
         });
 
-        const resetURL = `${domain}/reset-password/${token}`;
+        const resetURL = `${domain}/reset-password?token=${token}`;
 
         // Send email
         await sendMail(

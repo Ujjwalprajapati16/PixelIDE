@@ -1,0 +1,105 @@
+'use client'
+import Logo from '@/components/Logo'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator } from '@/components/ui/sidebar'
+import { getAvatarName } from '@/lib/getAvatarName'
+import { cn } from '@/lib/utils'
+import { FileIcon } from 'lucide-react'
+import { signOut, useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React from 'react'
+
+const DashboardSidebar = () => {
+    const session = useSession();
+    const pathname = usePathname()
+    const recentProject = [
+        {
+            "name": "Chat App",
+            "link": "/editor/abcd?file"
+        },
+        {
+            "name": "E-commerce",
+            "link": "/editor/efgh?file"
+        },
+        {
+            "name": "Portfolio",
+            "link": "/editor/ijkl?file"
+        },
+        {
+            "name": "Blog",
+            "link": "/editor/mnop?file"
+        },
+    ]
+    return (
+        <Sidebar className='overflow-hidden'>
+            <SidebarHeader className='px-4'>
+                <Logo w={150} />
+            </SidebarHeader>
+            <SidebarSeparator />
+            <SidebarContent>
+                <Button variant={'outline'} className='cursor-pointer my-4 mx-2'>
+                    Create Project
+                </Button>
+
+                <div className="px-2 w-full">
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <Link href={"/dashboard"} className={cn(
+                                "w-full block min-w-full py-1 rounded-md",
+                                pathname === "/dashboard" ? "bg-gray-200 text-gray-900 px-4" : "text-gray-500 hover:text-gray-900"
+                            )}>
+                                Dashboard
+                            </Link>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </div>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Recent Project</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {recentProject.map((project, index) => (
+                                <SidebarMenuItem key={index}>
+                                    <SidebarMenuButton asChild>
+                                        <Link href={project.link}>
+                                            <FileIcon />
+                                            <span>
+                                                {project.name.length > 10 ? project.name.slice(0, 10) + '...' : project.name}
+                                            </span>
+
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            </SidebarContent>
+            <SidebarSeparator />
+            <SidebarFooter>
+                <Popover>
+                    <PopoverTrigger>
+                        <div className='flex
+                        justify-between items-center gap-2 cursor-pointer px-2 bg-primary/5 rounded-md py-2 ml-auto'>
+                            <p className="font-semibold py-2">{session?.data?.user?.name}</p>
+                            <Avatar className='w-10 h-10 cursor-pointer drop-shadow-md'>
+                                <AvatarImage src={session.data?.user?.image as string} />
+                                <AvatarFallback>{getAvatarName(session?.data?.user?.name as string)}</AvatarFallback>
+                            </Avatar>
+                        </div>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                        <div className="p-[0.5px] bg-gray-200"></div>
+
+                        <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut() }}>Logout</Button>
+
+                    </PopoverContent>
+                </Popover>
+            </SidebarFooter>
+        </Sidebar>
+    )
+}
+
+export default DashboardSidebar

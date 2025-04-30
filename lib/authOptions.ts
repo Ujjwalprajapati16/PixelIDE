@@ -38,7 +38,7 @@ export const authOptions : NextAuthOptions = {
                         id : user._id.toString(),
                         name : user.name,
                         email : user.email,
-                        picture : user.picture,
+                        image : user.picture,
                     };
                 } catch (error) {
                     console.error("Error in authorize:", error);

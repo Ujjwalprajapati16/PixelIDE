@@ -11,6 +11,7 @@ import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
+import CreateProject from './CreateProject'
 
 const DashboardSidebar = () => {
     const session = useSession();
@@ -40,9 +41,7 @@ const DashboardSidebar = () => {
             </SidebarHeader>
             <SidebarSeparator />
             <SidebarContent>
-                <Button variant={'outline'} className='cursor-pointer my-4 mx-2'>
-                    Create Project
-                </Button>
+                <CreateProject />
 
                 <div className="px-2 w-full">
                     <SidebarMenu>

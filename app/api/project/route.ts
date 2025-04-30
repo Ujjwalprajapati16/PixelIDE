@@ -22,14 +22,14 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // Optional: Clean up faulty old index if exists
+        // Optional: Remove faulty unique index on name if global
         try {
             await FileModel.collection.dropIndex("name_1");
         } catch (e) {
-            // Index might not exist; ignore
+            // Ignore if index doesn't exist
         }
 
-        const existingProject = await ProjectModel.findOne({ name });
+        const existingProject = await ProjectModel.findOne({ name, userId: session.user.id });
         if (existingProject) {
             return NextResponse.json({ message: "Project already exists" }, { status: 400 });
         }
@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
         });
 
-        // Create default files
         await Promise.all([
             FileModel.create({ name: "index.html", projectId: project._id, content: htmlBoilerplateCode }),
             FileModel.create({ name: "style.css", projectId: project._id, content: styleBoilerplateCode }),
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// all the project with session user id
+// Get projects
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -68,25 +67,35 @@ export async function GET(request: NextRequest) {
         await connectDB();
 
         const searchParams = request.nextUrl.searchParams;
-
+        const projectId = searchParams.get("projectId");
         const page = Number(searchParams.get("page")) || 1;
         const limit = Number(searchParams.get("limit")) || 6;
-
         const skip = (page - 1) * limit;
 
-        const projects = await ProjectModel.find({
-            userId : session.user.id,
-        }).sort({ createdAt: -1 }).skip(skip).limit(limit).select("-__v -updatedAt").lean();
+        const filterProject: any = {
+            userId: session.user.id,
+        };
 
-        const totalCount = await ProjectModel.countDocuments({ userId : session.user.id });
+        if (projectId) {
+            filterProject._id = projectId;
+        }
+
+        const projects = await ProjectModel.find(filterProject)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .select("-__v -updatedAt")
+            .lean();
+
+        const totalCount = await ProjectModel.countDocuments(filterProject);
         const totalPages = Math.ceil(totalCount / limit);
 
-        return NextResponse.json({ 
-            message : "Projects fetched successfully",
-            data : projects,
+        return NextResponse.json({
+            message: "Projects fetched successfully",
+            data: projects,
             totalPages,
             totalCount,
-         }, { status: 200 });
+        }, { status: 200 });
 
     } catch (error: any) {
         return NextResponse.json({

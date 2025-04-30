@@ -4,6 +4,7 @@ import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SidebarTrigger, SidebarTriggerDashboard } from '@/components/ui/sidebar'
+import UserAvatar from '@/components/UserAvatar'
 import { getAvatarName } from '@/lib/getAvatarName'
 import { AvatarFallback } from '@radix-ui/react-avatar'
 import { signOut, useSession } from 'next-auth/react'
@@ -25,8 +26,8 @@ const DashboardHeader = () => {
                     {session?.data?.user?.name}
                 </span>
             </div>
-            <div className='ml-auto hidden md:block mt-3'>
-                <Popover>
+            <div className='ml-auto hidden md:block'>
+            {/* <Popover>
                     <PopoverTrigger>
                         <Avatar className='w-10 h-10 cursor-pointer drop-shadow-md'>
                             <AvatarImage src={session.data?.user?.image as string} />
@@ -40,7 +41,8 @@ const DashboardHeader = () => {
                         <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut() }}>Logout</Button>
 
                     </PopoverContent>
-                </Popover>
+                </Popover> */}
+                <UserAvatar />
             </div>
 
             <div className='md:hidden ml-auto'>

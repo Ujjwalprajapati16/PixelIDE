@@ -1,11 +1,14 @@
 "use client"
 import { Button } from '@/components/ui/button'
+import { DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import UserAvatar from '@/components/UserAvatar'
 import Axios from '@/lib/Axios'
-import { ArrowLeft, Database, Play, PlayCircle } from 'lucide-react'
+import { Dialog } from '@radix-ui/react-dialog'
+import { ArrowLeft, Database, Pencil, Play, PlayCircle } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import UpdateProject from './UpdateProject'
 
 const EditorHeader = () => {
     const router = useRouter();
@@ -29,9 +32,9 @@ const EditorHeader = () => {
                 const projects = response?.data?.data;
 
                 if (projects && projects.length > 0) {
-                    setData(projects[0]); 
+                    setData(projects[0]);
                 } else {
-                    setData(null); 
+                    setData(null);
                     toast.error("Project not found");
                 }
             }
@@ -43,7 +46,7 @@ const EditorHeader = () => {
     }
 
     useEffect(() => {
-        if(projectId){
+        if (projectId) {
             fetchData();
         }
     }, [projectId]);
@@ -59,9 +62,16 @@ const EditorHeader = () => {
                 >
                     <ArrowLeft />
                 </Button>
-                <h2 className='font-semibold'>
+                <h2 className='font-semibold relative'>
                     {
-                        isLoading ? "Loading..." : data?.name ?? "-"
+                        isLoading ? (
+                            <span className='text-neutral-400'>Loading...</span>
+                        ) : (
+                            <div className='flex items-center gap-1 group'>
+                                <span>{data?.name ?? "-"}</span>
+                                <UpdateProject projectId={projectId as string} name={data?.name ?? ""} fetchData={fetchData} />
+                            </div>
+                        )
                     }
                 </h2>
                 <div className='flex items-center gap-1'>

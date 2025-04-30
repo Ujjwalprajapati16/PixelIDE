@@ -104,3 +104,35 @@ export async function GET(request: NextRequest) {
         }, { status: 500 });
     }
 }
+
+// update project
+export async function PUT(request: NextRequest) {
+    try {
+        const { name, projectId } = await request.json();
+
+        const session = await getServerSession();
+
+        if(!session){
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        if(!name){
+            return NextResponse.json({ error: "Project name is required" }, { status: 400 });
+        }
+
+        await connectDB();
+        const updateProject = await ProjectModel.findByIdAndUpdate(projectId, {
+            name : name
+        });
+
+        return NextResponse.json({
+            message: "Project updated successfully",
+            data: updateProject,
+        }, { status: 200 });
+
+    } catch (error) {
+        return NextResponse.json({
+            error: "Error in PUT /api/project",
+        }, { status: 500 });
+    }
+}

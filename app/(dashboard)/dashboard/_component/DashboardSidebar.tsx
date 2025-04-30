@@ -10,12 +10,35 @@ import { FileIcon } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import CreateProject from './CreateProject'
+import Axios from '@/lib/Axios'
 
 const DashboardSidebar = () => {
     const session = useSession();
-    const pathname = usePathname()
+    const pathname = usePathname();
+    const [data, setData] =useState([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const response = await Axios.get("/api/recent-project-update");
+
+            if(response.status === 200) {
+                setData(response.data.data);
+            }
+        } catch (error) {
+            
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     const recentProject = [
         {
             "name": "Chat App",
@@ -59,10 +82,10 @@ const DashboardSidebar = () => {
                     <SidebarGroupLabel>Recent Project</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {recentProject.map((project, index) => (
+                            {data.map((project : any, index) => (
                                 <SidebarMenuItem key={index}>
                                     <SidebarMenuButton asChild>
-                                        <Link href={project.link}>
+                                        <Link href={`${process.env.NEXT_PUBLIC_BASE_URL}/editor/${project?._id}?file=index.html`}>
                                             <FileIcon />
                                             <span>
                                                 {project.name.length > 10 ? project.name.slice(0, 10) + '...' : project.name}

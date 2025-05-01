@@ -2,40 +2,71 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Sidebar, SidebarHeader } from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import Axios from '@/lib/Axios'
+import { getFileIcon } from '@/lib/getFileIcon'
 import { File, FilePlus } from 'lucide-react'
-import { useParams } from 'next/navigation'
-import React, { useState } from 'react'
+import Image from 'next/image'
+import { useParams, useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+type TProjectFile = {
+    _id: string;
+    name: string;
+    extension: string;
+    projectId: string;
+}
 
 const EditorSidebar = () => {
     const [fileName, setFileName] = useState<string>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [openAddFile, setOpenAddFile] = useState<boolean>(false);
+    const [fileList, setFileList] = useState<TProjectFile[]>([]);
     const { projectId } = useParams();
+    const router = useRouter();
 
-    const handleCreateFile = async () => {
-        const payload = {
-            name : fileName,
-            projectId : projectId
-        }
+    const fetchAllFiles = async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            const response = await Axios.post("api/project-file", payload);
+            const response = await Axios.get(`api/project-file?projectId=${projectId}`);
 
-            if(response.status === 201) {
-                toast.success("File created successfully")
-                setFileName("");
-                setOpenAddFile(false);
+            if (response?.status === 200) {
+                setFileList(response?.data?.data || []);
             }
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error?.response?.data?.error || "Something went wrong");
         } finally {
             setIsLoading(false);
         }
     }
 
+    const handleCreateFile = async () => {
+        const payload = {
+            name: fileName,
+            projectId: projectId
+        }
+        try {
+            setIsLoading(true);
+            const response = await Axios.post("api/project-file", payload);
+
+            if (response.status === 201) {
+                toast.success("File created successfully")
+                setFileName("");
+                setOpenAddFile(false);
+                fetchAllFiles();
+            }
+        } catch (error: any) {
+            toast.error(error?.response?.data?.error || "Something went wrong");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchAllFiles();
+    }, []);
+    console.log(fileList);
     return (
         <Sidebar className='h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] top-14'>
             <SidebarHeader className='bg-primary/10 flex flex-row items-center py-1'>
@@ -70,6 +101,40 @@ const EditorSidebar = () => {
                     </Dialog>
                 </div>
             </SidebarHeader>
+            <SidebarContent>
+                {
+                    isLoading ? (
+                        <p className='text-gray-400 py-4 mx-auto w-fit'>Loading...</p>
+                    ) : (
+                        fileList.length === 0 ? (
+                            <p className='text-gray-400 py-4 mx-auto w-fit'>No files found</p>
+                        ) : (
+                            <SidebarMenu className='py-4'>
+                                {
+                                    fileList.map((file, index) => {
+                                        return (
+                                            <SidebarMenuItem key={file?._id}>
+                                            <SidebarMenuButton className='cursor-pointer' onClick={() => router.push(`/editor/${projectId}?file=${file.name}`)}>
+                                                <div className='w-4 h-4'>
+                                                    <Image 
+                                                        alt={file.name}
+                                                        width={18}
+                                                        height={18}
+                                                        src={getFileIcon(file.extension) || ""}
+                                                    />
+                                                </div>
+                                                <p>{file.name}</p>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        );
+                                    })
+                                }
+                            </SidebarMenu>
+                        )
+
+                    )
+                }
+            </SidebarContent>
         </Sidebar>
     )
 }

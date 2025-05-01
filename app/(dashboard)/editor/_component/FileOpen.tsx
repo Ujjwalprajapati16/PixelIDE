@@ -11,7 +11,7 @@ const FileOpen = () => {
     const router = useRouter();
     const { projectId } = useParams();
     return (
-        <div className='flex items-center gap-2 bg-primary/5 h-11'>
+        <div className='flex items-center gap-2 bg-primary/10 h-11 sticky top-14 z-50 backdrop-blur-xl'>
             <SidebarTrigger />
             {fileName && (
                 <div className='flex items-center gap-1 border-2 bg-primary/5 px-1 border-transparent border-b-primary'>

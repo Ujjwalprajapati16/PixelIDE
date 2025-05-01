@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Editor */
+.cm-editor .cm-gutter {
+  @apply border-r-0 bg-primary/5 text-base;
+}
+
+.cm-editor {
+  @apply h-full w-full min-h-[calc(100vh-3.5rem)];
+}

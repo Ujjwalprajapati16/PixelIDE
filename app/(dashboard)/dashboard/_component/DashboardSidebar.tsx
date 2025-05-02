@@ -39,24 +39,6 @@ const DashboardSidebar = () => {
         fetchData();
     }, []);
 
-    const recentProject = [
-        {
-            "name": "Chat App",
-            "link": "/editor/abcd?file"
-        },
-        {
-            "name": "E-commerce",
-            "link": "/editor/efgh?file"
-        },
-        {
-            "name": "Portfolio",
-            "link": "/editor/ijkl?file"
-        },
-        {
-            "name": "Blog",
-            "link": "/editor/mnop?file"
-        },
-    ]
     return (
         <Sidebar className='overflow-hidden'>
             <SidebarHeader className='px-4'>

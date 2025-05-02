@@ -28,7 +28,7 @@ export default function Home() {
       {/* Dashboard landing image */}
       <div className="mx-auto w-fit shadow-lg">
         <Image
-          src={"/banner.png"}
+          src={"/banner-animate.gif"}
           width={1000}
           height={400}
           alt="banner"

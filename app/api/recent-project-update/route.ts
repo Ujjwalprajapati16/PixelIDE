@@ -14,7 +14,9 @@ export async function GET() {
 
         await connectDB();
         
-        const recentProject = await ProjectModel.find({}).sort({ createdAt: -1 }).limit(10).select("-__v -updatedAt").lean();
+        const recentProject = await ProjectModel.find({
+            userId: session.user.id
+        }).sort({ createdAt: -1 }).limit(10).select("-__v -updatedAt").lean();
         
         return NextResponse.json({ 
             message : "Recent project fetched successfully",

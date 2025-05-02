@@ -6,7 +6,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string; fileName: string } }
 ) {
-  const { projectId, fileName } = await params;
+  const { projectId, fileName } = params;
 
   if (!projectId || !fileName) {
     return new NextResponse("Missing projectId or fileName", {

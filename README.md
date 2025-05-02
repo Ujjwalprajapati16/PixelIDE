@@ -1,5 +1,4 @@
 # PixelIDE 
-![PixelIDE Logo](./public/pixelIDE.png)
 
 PixelIDE is a modern, full-stack code editor built with the MERN stack and Next.js. It is designed to provide seamless and responsive coding experiences directly in the browser. With features like real-time syntax highlighting, multi-language support, and collaborative editing, PixelIDE aims to be a minimalist yet powerful tool for developers to write, run, and share code effortlessly from anywhere.
 

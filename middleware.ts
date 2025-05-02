@@ -31,6 +31,7 @@ export const config = {
     matcher: [
         '/login',
         '/register', 
-        '/dashboard'
+        '/dashboard/:path*',
+        '/editor/:path*'
     ]
 }

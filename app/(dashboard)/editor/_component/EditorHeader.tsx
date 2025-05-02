@@ -4,12 +4,13 @@ import { DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import UserAvatar from '@/components/UserAvatar'
 import Axios from '@/lib/Axios'
 import { Dialog } from '@radix-ui/react-dialog'
-import { ArrowLeft, Database, Pencil, Play, PlayCircle } from 'lucide-react'
+import { AppWindow, ArrowLeft, Database, Pencil, Play, PlayCircle } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import UpdateProject from './UpdateProject'
 import { useEditorContext } from '../_provider/EditorProvider'
+import { cn } from '@/lib/utils'
 
 const EditorHeader = () => {
     const router = useRouter();
@@ -18,7 +19,7 @@ const EditorHeader = () => {
     const [data, setData] = useState<any>({
         name: "",
     });
-    const {isLoading : editorUpdateLoading} = useEditorContext();
+    const { isLoading: editorUpdateLoading, setOpenBrowser, openBrowser } = useEditorContext();
 
     const fetchData = async () => {
         try {
@@ -89,8 +90,15 @@ const EditorHeader = () => {
             </div>
             {/* right side */}
             <div className='ml-auto w-fit flex items-center gap-6'>
-                <div className='bg-primary/70 hover:bg-primary p-1 cursor-pointer rounded-full'>
-                    <Play />
+                <div
+                    onClick={() => setOpenBrowser(!openBrowser)}
+                    className={
+                        cn(
+                            "p-1 cursor-pointer rounded-full drop-shadow-2xl",
+                            openBrowser && "text-primary"
+                        )
+                    }>
+                    <AppWindow />
                 </div>
                 <UserAvatar />
             </div>

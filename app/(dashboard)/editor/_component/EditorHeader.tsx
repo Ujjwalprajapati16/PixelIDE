@@ -57,7 +57,7 @@ const EditorHeader = () => {
             {/* left side */}
             <div className='flex items-center gap-4 max-w-sm'>
                 <Button
-                    onClick={() => { router.back() }}
+                    onClick={() => { router.push("/dashboard") }}
                     className='cursor-pointer'
                 >
                     <ArrowLeft />

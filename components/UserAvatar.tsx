@@ -20,7 +20,7 @@ const UserAvatar = () => {
                 <p className="font-semibold py-2">{session?.data?.user?.name}</p>
                 <div className="p-[0.5px] bg-gray-200"></div>
 
-                <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut() }}>Logout</Button>
+                <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut({ callbackUrl: "/login" }) }}>Logout</Button>
 
             </PopoverContent>
         </Popover>

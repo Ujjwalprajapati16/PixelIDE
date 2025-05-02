@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string; fileName: string } }
+  context: { params: Promise<{ projectId: string; fileName: string }> }
 ) {
-  const { projectId, fileName } = params;
+  const { projectId, fileName } = await context.params;
 
   if (!projectId || !fileName) {
     return new NextResponse("Missing projectId or fileName", {

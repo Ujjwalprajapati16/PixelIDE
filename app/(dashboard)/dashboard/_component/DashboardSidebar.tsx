@@ -70,7 +70,7 @@ const DashboardSidebar = () => {
                                         <Link href={`${process.env.NEXT_PUBLIC_BASE_URL}/editor/${project?._id}?file=index.html`}>
                                             <FileIcon />
                                             <span>
-                                                {project.name.length > 10 ? project.name.slice(0, 10) + '...' : project.name}
+                                                {project.name.length > 20 ? project.name.slice(0, 20) + '...' : project.name}
                                             </span>
 
                                         </Link>

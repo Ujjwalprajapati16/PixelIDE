@@ -6,18 +6,13 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable in .env.local');
 }
 
-// Add types to avoid TypeScript errors on global object
 declare global {
-  // Allow global `mongoose` to persist across hot reloads in development
-  var mongoose: { conn: mongoose.Connection | null; promise: Promise<mongoose.Connection> | null } | undefined;
+  var mongoose: { conn: mongoose.Connection | null; promise: Promise<mongoose.Connection> | null };
 }
 
-// Global cache (avoids reconnecting on hot reload)
-let cached = global.mongoose ?? { conn: null, promise: null };
+global.mongoose = global.mongoose || { conn: null, promise: null };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+const cached = global.mongoose;
 
 export async function connectDB(): Promise<mongoose.Connection> {
   if (cached.conn) {

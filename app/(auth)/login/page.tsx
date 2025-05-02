@@ -1,16 +1,15 @@
 'use client'
 import { useState } from 'react'
-import { boolean, z } from 'zod'
+import {  z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { set } from 'mongoose';
 
 const formSchema = z.object({
   email: z.string({ message: 'Email is required' }).email().min(5).max(50),

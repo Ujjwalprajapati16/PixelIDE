@@ -9,6 +9,7 @@ import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import UpdateProject from './UpdateProject'
+import { useEditorContext } from '../_provider/EditorProvider'
 
 const EditorHeader = () => {
     const router = useRouter();
@@ -17,6 +18,7 @@ const EditorHeader = () => {
     const [data, setData] = useState<any>({
         name: "",
     });
+    const {isLoading : editorUpdateLoading} = useEditorContext();
 
     const fetchData = async () => {
         try {
@@ -76,7 +78,13 @@ const EditorHeader = () => {
                 </h2>
                 <div className='flex items-center gap-1'>
                     <Database size={16} />
-                    Saving / Save
+                    {
+                        editorUpdateLoading ? (
+                            <span className='text-neutral-400'>Saving...</span>
+                        ) : (
+                            <span>Saved</span>
+                        )
+                    }
                 </div>
             </div>
             {/* right side */}

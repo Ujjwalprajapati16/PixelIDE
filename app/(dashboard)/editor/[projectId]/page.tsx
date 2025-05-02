@@ -7,10 +7,11 @@ import { keymap } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { StateEffect } from '@codemirror/state';
 import { html } from '@codemirror/lang-html';
-import { javascript } from '@codemirror/lang-javascript';
-import { css } from '@codemirror/lang-css';
+import { javascript, javascriptLanguage } from '@codemirror/lang-javascript';
+import { css, cssLanguage } from '@codemirror/lang-css';
 import { toast } from 'sonner';
 import Axios from '@/lib/Axios';
+import { useEditorContext } from '../_provider/EditorProvider';
 
 const CodeEditor = () => {
   const searchParams = useSearchParams();
@@ -20,10 +21,24 @@ const CodeEditor = () => {
   const [content, setContent] = useState('');
   const containerRef = useRef(null);
   const editorRef = useRef<EditorView | null>(null);
+  const {isLoading, setIsLoading} = useEditorContext();
 
   // Determine language mode based on file extension
   const getLanguageExtension = useCallback(() => {
-    if (file?.endsWith('.html')) return html();
+    if (file?.endsWith('.html')) return html({
+      autoCloseTags: true,
+      selfClosingTags: true,
+      nestedLanguages :[
+        {
+          tag : "style",
+          parser : cssLanguage.parser
+        },
+        {
+          tag : "script",
+          parser : javascriptLanguage.parser
+        }
+      ]
+    });
     if (file?.endsWith('.css')) return css();
     if (file?.endsWith('.js')) return javascript();
     return [];
@@ -32,10 +47,13 @@ const CodeEditor = () => {
   // Save helper using the specific fileId
   const saveFileContent = useCallback(async (id : any, fileContent : any) => {
     try {
+      setIsLoading(true);
       await Axios.put('api/code', { fileId: id, content: fileContent });
       toast.success('File saved successfully!');
     } catch (error:any) {
       toast.error(error?.response?.data?.error || 'Failed to save file');
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 

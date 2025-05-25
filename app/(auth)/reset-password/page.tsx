@@ -11,6 +11,7 @@ import Axios from '@/lib/Axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
+import Loader from '@/components/ui/loader';
 
 const formSchema = z.object({
   password: z.string({ message: 'Password is required' })
@@ -162,6 +163,7 @@ const ResetPassword = () => {
             )}
           />
           <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading && <Loader className="mr-2 h-4 w-4" />}
             {isLoading ? 'Resetting...' : 'Reset Password'}
           </Button>
         </form>

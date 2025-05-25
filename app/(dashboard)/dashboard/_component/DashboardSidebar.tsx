@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import CreateProject from './CreateProject'
 import Axios from '@/lib/Axios'
+import Loader from '@/components/ui/loader'
 
 const DashboardSidebar = () => {
     const session = useSession();
@@ -97,7 +98,10 @@ const DashboardSidebar = () => {
                     <PopoverContent>
                         <div className="p-[0.5px] bg-gray-200"></div>
 
-                        <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut() }}>Logout</Button>
+                        <Button variant={'destructive'} className='w-full mt-4 cursor-pointer' onClick={() => { signOut() }}>
+                            {isLoading && <Loader className="mr-2 h-4 w-4" />}
+                            {isLoading ? 'Logging out...' : 'Logout'}
+                        </Button>
 
                     </PopoverContent>
                 </Popover>

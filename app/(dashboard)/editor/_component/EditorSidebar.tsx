@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import Loader from '@/components/ui/loader'
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import Axios from '@/lib/Axios'
 import { getFileIcon } from '@/lib/getFileIcon'
@@ -95,6 +96,7 @@ const EditorSidebar = () => {
                                 disabled={isLoading}
                                 onClick={handleCreateFile}
                             >
+                                {isLoading && <Loader className="mr-2 h-4 w-4" />}
                                 {isLoading ? 'Adding...' : 'Add File'}
                             </Button>
                         </DialogContent>

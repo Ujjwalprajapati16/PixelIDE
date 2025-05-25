@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Axios from '@/lib/Axios';
+import Loader from '@/components/ui/loader';
 
 const formSchema = z.object({
   email: z.string({ message: 'Email is required' }).email({ message: "Enter a valid email address" }),
@@ -71,7 +72,7 @@ const ForgotPassword = () => {
           />
 
           <Button disabled={isLoading} type="submit" className="w-full">
-            {isLoading ? 'Loading...' : 'Submit'}
+            {isLoading ? <Loader className="mr-2 h-4 w-4" /> : 'Submit'}
           </Button>
         </form>
       </Form>

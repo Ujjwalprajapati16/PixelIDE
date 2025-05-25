@@ -12,7 +12,6 @@ import React from 'react'
 
 const DashboardHeader = () => {
     const session = useSession();
-    console.log(session)
     return (
         <div className='h-14 bg-white flex items-center px-4 sticky top-0 z-40'>
             <div className="md:hidden">

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import Axios from '@/lib/Axios'
 import { useRouter } from 'next/navigation'
+import Loader from '@/components/ui/loader'
 
 type TCreateProject = {
     buttonVarient?: "outline" | "default"
@@ -62,7 +63,8 @@ const CreateProject = ({ buttonVarient }: TCreateProject) => {
                         />
                         <Button className='cursor-pointer' onClick={handleCreateProject}
                             disabled={isLoading}
-                        >
+                        >   
+                            {isLoading && <Loader className="mr-2 h-4 w-4" />}
                             {isLoading ? "Creating..." : "Create Project"}
                         </Button>
                     </form>

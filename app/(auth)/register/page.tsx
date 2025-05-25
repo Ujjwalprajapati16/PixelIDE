@@ -10,6 +10,7 @@ import Link from 'next/link';
 import Axios from '@/lib/Axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import Loader from '@/components/ui/loader';
 
 const formSchema = z.object({
   name: z.string({ message: 'Name is required' }).min(3),
@@ -133,7 +134,7 @@ const RegisterPage = () => {
             disabled={isLoading}
             type="submit"
             className='w-full cursor-pointer'>
-            {isLoading ? 'Loading...' : 'Create Account'}
+            {isLoading ? <Loader className="mr-2 h-4 w-4" /> : 'Create Account'}
           </Button>
         </form>
       </Form>

@@ -14,6 +14,7 @@ import Axios from '@/lib/Axios'
 import { useRouter } from 'next/navigation'
 import { Pencil } from 'lucide-react'
 import { fetchData } from 'next-auth/client/_utils'
+import Loader from '@/components/ui/loader'
 
 type TUpdateProject = {
     projectId: string
@@ -76,7 +77,8 @@ const UpdateProject = ({ projectId, name, fetchData }: TUpdateProject) => {
                         <Button className='cursor-pointer' onClick={handleUpdateProject}
                             disabled={isLoading}
                         >
-                            {isLoading ? "Creating..." : "Update Project"}
+                            {isLoading && <Loader className="mr-2 h-4 w-4" />}
+                            {isLoading ? "Updating..." : "Update Project"}
                         </Button>
                     </form>
                 </DialogHeader>

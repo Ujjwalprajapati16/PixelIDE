@@ -1,5 +1,6 @@
 import Logo from "@/components/Logo";
 import { TextAnimationHeading } from "@/components/TextAnimationHeading";
+import Loader from "@/components/ui/loader";
 import { Suspense } from "react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right: Auth Content */}
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div><Loader className="mr-2 h-4 w-4" /></div>}>
         <div className="h-full flex flex-col justify-center px-4 lg:p-6 overflow-auto">
           {children}
         </div>

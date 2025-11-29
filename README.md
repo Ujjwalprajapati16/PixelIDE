@@ -17,6 +17,33 @@ PixelIDE is a modern, full-stack code editor built with the MERN stack and Next.
 - **Cloud Integration**: Save and load projects directly from the cloud.
 - **Code Execution**: Run code snippets directly in the editor for supported languages.
 
+### Code Execution
+
+```mermaid
+sequenceDiagram
+    actor Dev as Developer
+    participant Client as Editor UI
+    participant API as Next.js API
+    participant DB as MongoDB
+    participant Iframe as Preview Window
+
+    Dev->>Client: Types Code (HTML/CSS/JS)
+    Dev->>Client: Triggers Save (Ctrl+S)
+    Client->>API: PUT /api/code (content, fileId)
+    API->>DB: Update FileModel
+    DB-->>API: Success
+    API-->>Client: Saved Toast Notification
+
+    Note over Client, Iframe: Live Preview Refresh
+    
+    Client->>Iframe: Reload Iframe src
+    Iframe->>API: GET /api/file/[projectId]/[filename]
+    API->>DB: Find File by Name & ProjectID
+    DB-->>API: Return File Data
+    API->>API: Process Content (Fix relative paths)
+    API-->>Iframe: Return Raw HTML/CSS/JS
+    Iframe-->>Dev: Renders Output
+```
 ---
 
 ## Tech Stack
@@ -39,7 +66,111 @@ PixelIDE is a modern, full-stack code editor built with the MERN stack and Next.
 - **Nodemailer**: For sending emails.
 - **Axios**: HTTP client for API requests.
 - **Sonner**: Toast notifications.
+---
+## System Architecture
 
+```mermaid
+graph TD
+    subgraph Client ["Client Side (Browser)"]
+        UI[User Interface / Shadcn UI]
+        Editor[CodeMirror Editor]
+        Preview[Live Preview Iframe]
+    end
+
+    subgraph Server ["Next.js Server"]
+        NextAuth[NextAuth.js Authentication]
+        API[API Routes /app/api]
+        SSR[Server Side Rendering]
+    end
+
+    subgraph Database ["Data Layer"]
+        MongoDB[(MongoDB Atlas)]
+    end
+
+    subgraph External ["External Services"]
+        Email[Nodemailer / Gmail SMTP]
+    end
+
+    UI -->|Interacts| Editor
+    UI -->|Requests Pages| SSR
+    Editor -->|Saves Code| API
+    Preview -->|Fetches Raw Content| API
+    
+    API -->|CRUD Operations| MongoDB
+    API -->|Auth Requests| NextAuth
+    API -->|Sends Emails| Email
+    
+    NextAuth -->|Validates User| MongoDB
+```
+
+---
+
+## Database Schema
+
+```mermaid
+erDiagram
+    USER ||--o{ PROJECT : owns
+    PROJECT ||--o{ FILE : contains
+
+    USER {
+        ObjectId _id PK
+        String name
+        String email
+        String password "Hashed"
+        String picture
+        String refreshToken
+        Date createdAt
+        Date updatedAt
+    }
+
+    PROJECT {
+        ObjectId _id PK
+        String name
+        ObjectId userId FK "Ref: User"
+        Date createdAt
+        Date updatedAt
+    }
+
+    FILE {
+        ObjectId _id PK
+        String name
+        String extension
+        String content
+        ObjectId projectId FK "Ref: Project"
+        Date createdAt
+        Date updatedAt
+    }
+```
+---
+
+## Application User Flow
+
+```mermaid
+flowchart TD
+    Start((Start)) --> LandingPage
+    LandingPage -->|Click Login| LoginPage
+    LandingPage -->|Click Register| RegisterPage
+    
+    RegisterPage -->|Success| LoginPage
+    LoginPage -->|Success| Dashboard
+    
+    Dashboard -->|Create Project| NewProjectModal
+    Dashboard -->|Select Project| EditorPage
+    
+    NewProjectModal -->|API: POST /api/project| Dashboard
+    
+    subgraph IDE ["Editor Workspace"]
+        EditorPage --> FileTree[Sidebar File Tree]
+        EditorPage --> CodeArea[CodeMirror Input]
+        EditorPage --> PreviewArea[Live Preview]
+    end
+    
+    FileTree -->|Select File| CodeArea
+    FileTree -->|Add File| API_AddFile[API: POST /project-file]
+    
+    CodeArea -->|Ctrl+S / Auto| API_Save[API: PUT /api/code]
+    API_Save -->|Update| PreviewArea
+```
 ---
 
 ## Installation

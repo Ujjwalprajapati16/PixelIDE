@@ -1,6 +1,6 @@
 # PixelIDE 
 
-PixelIDE is a modern, full-stack code editor built with the MERN stack and Next.js. It is designed to provide seamless and responsive coding experiences directly in the browser. With features like real-time syntax highlighting, multi-language support, and collaborative editing, PixelIDE aims to be a minimalist yet powerful tool for developers to write, run, and share code effortlessly from anywhere.
+PixelIDE is a modern, full-stack browser-based code editor built with Next.js and MongoDB. It provides a seamless coding experience directly in the browser with real-time syntax highlighting, live preview, and project management. PixelIDE allows developers to create, edit, and preview HTML/CSS/JS projects effortlessly from anywhere.
 
 <img src="./public/banner-animate.gif" alt="PixelIDE Banner">
 
@@ -8,41 +8,50 @@ PixelIDE is a modern, full-stack code editor built with the MERN stack and Next.
 
 ## Features
 
-- **Real-Time Syntax Highlighting**: Supports multiple programming languages with instant feedback.
-- **Collaborative Editing**: Work with your team in real-time.
-- **Authentication**: Secure login, registration, and password reset functionality.
-- **Responsive Design**: Optimized for all devices, including desktops, tablets, and mobile phones.
-- **Customizable Themes**: Light and dark mode support.
-- **Email Notifications**: Password reset and other email-based notifications.
-- **Cloud Integration**: Save and load projects directly from the cloud.
-- **Code Execution**: Run code snippets directly in the editor for supported languages.
+- **Real-Time Syntax Highlighting**: CodeMirror-powered editor with language-aware highlighting for HTML, CSS, and JavaScript.
+- **Live Preview**: Draggable, resizable browser panel with iframe-based live preview that auto-refreshes on save.
+- **Project Management**: Create, rename, and paginate through projects from a dashboard with project preview cards.
+- **File Management**: Sidebar file tree with file creation, selection, and per-file editing.
+- **Authentication**: Secure credentials-based login, registration, and full password reset flow via email.
+- **Theme Support**: Light and dark mode via `next-themes`.
+- **Email Notifications**: Forgot password emails sent via Nodemailer with Gmail SMTP.
+- **Cloud Storage**: All projects and files are persisted in MongoDB Atlas.
+- **Keyboard Shortcuts**: `Ctrl+S` / `Cmd+S` to save the current file.
+- **Public Browser View**: Shareable public preview URL for any project file.
 
 ### Code Execution
 
 ```mermaid
 sequenceDiagram
     actor Dev as Developer
-    participant Client as Editor UI
-    participant API as Next.js API
+    participant Editor as CodeMirror Editor
+    participant API as Next.js API Routes
     participant DB as MongoDB
-    participant Iframe as Preview Window
+    participant Iframe as Browser Preview Panel
 
-    Dev->>Client: Types Code (HTML/CSS/JS)
-    Dev->>Client: Triggers Save (Ctrl+S)
-    Client->>API: PUT /api/code (content, fileId)
-    API->>DB: Update FileModel
-    DB-->>API: Success
-    API-->>Client: Saved Toast Notification
+    Dev->>Editor: Opens file from sidebar
+    Editor->>API: POST /api/code {projectId, fileName}
+    API->>DB: FileModel.findOne({projectId, name})
+    DB-->>API: File document (with content)
+    API-->>Editor: {data: file}
+    Editor->>Editor: Initialize CodeMirror with content
 
-    Note over Client, Iframe: Live Preview Refresh
-    
-    Client->>Iframe: Reload Iframe src
-    Iframe->>API: GET /api/file/[projectId]/[filename]
-    API->>DB: Find File by Name & ProjectID
-    DB-->>API: Return File Data
-    API->>API: Process Content (Fix relative paths)
-    API-->>Iframe: Return Raw HTML/CSS/JS
-    Iframe-->>Dev: Renders Output
+    Dev->>Editor: Types code (HTML/CSS/JS)
+    Dev->>Editor: Ctrl+S / Cmd+S
+    Editor->>API: PUT /api/code {fileId, content}
+    API->>DB: FileModel.findByIdAndUpdate(fileId, {content})
+    DB-->>API: Updated file
+    API-->>Editor: Success → Toast notification
+
+    Note over Editor, Iframe: Live Preview via Iframe
+
+    Dev->>Iframe: Opens browser panel / clicks refresh
+    Iframe->>API: GET /api/file/{projectId}/{fileName}
+    API->>DB: FileModel.findOne({name, projectId})
+    DB-->>API: File content
+    API->>API: Rewrite relative src/href to API URLs (HTML only)
+    API-->>Iframe: Raw content with correct Content-Type
+    Iframe-->>Dev: Renders live output
 ```
 ---
 
@@ -55,52 +64,85 @@ sequenceDiagram
 - **Shadcn UI**: For UI components.
 
 ### Backend
-- **Node.js**: JavaScript runtime for server-side development.
-- **Express.js**: Web framework for building APIs.
-- **MongoDB**: NoSQL database for storing user and project data.
-- **Mongoose**: ODM for MongoDB.
-- **NextAuth.js**: Authentication library for Next.js.
+- **Next.js API Routes**: Server-side API handlers (App Router conventions).
+- **MongoDB**: NoSQL database for storing user, project, and file data.
+- **Mongoose**: ODM for MongoDB with schema validation and hooks.
+- **NextAuth.js**: Authentication with Credentials provider and JWT sessions.
+- **bcryptjs**: Password hashing with salt rounds.
+- **jsonwebtoken**: JWT signing for password reset tokens.
 
 ### Other Tools
-- **Zod**: Schema validation for forms and APIs.
-- **Nodemailer**: For sending emails.
+- **Zod**: Schema validation for forms.
+- **Nodemailer**: Gmail SMTP email transport for password reset.
 - **Axios**: HTTP client for API requests.
+- **Motion (Framer Motion)**: Drag and animation for the browser preview panel.
+- **re-resizable**: Resizable browser preview window.
 - **Sonner**: Toast notifications.
 ---
 ## System Architecture
 
 ```mermaid
 graph TD
-    subgraph Client ["Client Side (Browser)"]
-        UI[User Interface / Shadcn UI]
-        Editor[CodeMirror Editor]
-        Preview[Live Preview Iframe]
+    subgraph Client ["🖥️ Client (Browser)"]
+        Landing["Landing Page"]
+        AuthPages["Auth Pages\nLogin · Register · Forgot Password"]
+        Dashboard["Dashboard\nProject Cards · Pagination"]
+        EditorUI["Editor Workspace"]
+        Sidebar["Sidebar File Tree"]
+        CodeMirror["CodeMirror Editor"]
+        Preview["Browser Preview Panel\n(Draggable + Resizable Iframe)"]
+        BrowserPage["Public Browser View\n/browser/[username]/[projectId]/[file]"]
     end
 
-    subgraph Server ["Next.js Server"]
-        NextAuth[NextAuth.js Authentication]
-        API[API Routes /app/api]
-        SSR[Server Side Rendering]
+    subgraph Server ["⚡ Next.js Server (App Router)"]
+        Middleware["Middleware\nnext-auth/middleware\nProtects /dashboard/* & /editor/*"]
+        NextAuth["NextAuth.js\nCredentials Provider · JWT Sessions"]
+        AuthAPI["/api/auth/*\nRegister · Forgot PW · Reset PW"]
+        ProjectAPI["/api/project\nCreate · List · Update"]
+        FileAPI["/api/project-file\nCreate · List Files"]
+        CodeAPI["/api/code\nFetch & Update File Content"]
+        RawFileAPI["/api/file/[projectId]/[fileName]\nServe Raw HTML/CSS/JS"]
+        RecentAPI["/api/recent-project-update\nLatest 10 Projects"]
     end
 
-    subgraph Database ["Data Layer"]
-        MongoDB[(MongoDB Atlas)]
+    subgraph Database ["🗄️ Data Layer"]
+        MongoDB[("
+            MongoDB Atlas\n
+            Users · Projects · Files
+        ")]
     end
 
-    subgraph External ["External Services"]
-        Email[Nodemailer / Gmail SMTP]
+    subgraph External ["📧 External Services"]
+        Email["Nodemailer\nGmail SMTP"]
     end
 
-    UI -->|Interacts| Editor
-    UI -->|Requests Pages| SSR
-    Editor -->|Saves Code| API
-    Preview -->|Fetches Raw Content| API
-    
-    API -->|CRUD Operations| MongoDB
-    API -->|Auth Requests| NextAuth
-    API -->|Sends Emails| Email
-    
-    NextAuth -->|Validates User| MongoDB
+    Landing --> AuthPages
+    AuthPages -->|"Login Success"| Dashboard
+    Dashboard -->|"Select Project"| EditorUI
+    EditorUI --- Sidebar
+    EditorUI --- CodeMirror
+    EditorUI --- Preview
+
+    AuthPages -->|"Credentials"| NextAuth
+    AuthPages -->|"Register / Reset"| AuthAPI
+    Middleware -->|"Validates Session"| NextAuth
+
+    Sidebar -->|"List / Create Files"| FileAPI
+    CodeMirror -->|"Fetch Content (POST)"| CodeAPI
+    CodeMirror -->|"Save Content (PUT)"| CodeAPI
+    Preview -->|"Loads via iframe src"| RawFileAPI
+    BrowserPage -->|"Loads via iframe src"| RawFileAPI
+    Dashboard -->|"CRUD"| ProjectAPI
+    Dashboard -->|"Recent"| RecentAPI
+
+    AuthAPI --> MongoDB
+    ProjectAPI --> MongoDB
+    FileAPI --> MongoDB
+    CodeAPI --> MongoDB
+    RawFileAPI --> MongoDB
+    RecentAPI --> MongoDB
+    NextAuth -->|"Validate Credentials"| MongoDB
+    AuthAPI -->|"Send Reset Email"| Email
 ```
 
 ---
@@ -147,29 +189,40 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    Start((Start)) --> LandingPage
-    LandingPage -->|Click Login| LoginPage
-    LandingPage -->|Click Register| RegisterPage
-    
-    RegisterPage -->|Success| LoginPage
-    LoginPage -->|Success| Dashboard
-    
-    Dashboard -->|Create Project| NewProjectModal
-    Dashboard -->|Select Project| EditorPage
-    
-    NewProjectModal -->|API: POST /api/project| Dashboard
-    
-    subgraph IDE ["Editor Workspace"]
-        EditorPage --> FileTree[Sidebar File Tree]
-        EditorPage --> CodeArea[CodeMirror Input]
-        EditorPage --> PreviewArea[Live Preview]
+    Start(("🌐 Start")) --> LandingPage["Landing Page"]
+    LandingPage -->|"Click Login"| LoginPage["Login Page"]
+    LandingPage -->|"Click Register"| RegisterPage["Register Page"]
+
+    RegisterPage -->|"POST /api/auth/register"| LoginPage
+    LoginPage -->|"NextAuth signIn()"| Dashboard["Dashboard"]
+
+    LoginPage -->|"Forgot Password?"| ForgotPW["Forgot Password Page"]
+    ForgotPW -->|"POST /api/auth/forgot-password"| EmailSent["📧 Reset Email Sent"]
+    EmailSent -->|"Click link in email"| ResetPW["Reset Password Page"]
+    ResetPW -->|"POST /api/auth/reset-password"| LoginPage
+
+    Dashboard -->|"Create Project"| NewProjectModal["Create Project Dialog"]
+    NewProjectModal -->|"POST /api/project\n(creates index.html, style.css, script.js)"| Dashboard
+    Dashboard -->|"Select Project Card"| EditorPage["Editor Page\n/editor/[projectId]?file=index.html"]
+
+    subgraph IDE ["🖥️ Editor Workspace"]
+        direction TB
+        EditorPage --- FileTree["📁 Sidebar File Tree\nGET /api/project-file"]
+        EditorPage --- Header["Editor Header\nRename Project · Open Browser"]
+        EditorPage --- CodeArea["✏️ CodeMirror Editor\nPOST /api/code → load content"]
+        EditorPage --- PreviewPanel["🔍 Browser Preview Panel\n(Draggable + Resizable)"]
     end
-    
-    FileTree -->|Select File| CodeArea
-    FileTree -->|Add File| API_AddFile[API: POST /project-file]
-    
-    CodeArea -->|Ctrl+S / Auto| API_Save[API: PUT /api/code]
-    API_Save -->|Update| PreviewArea
+
+    FileTree -->|"Click file"| CodeArea
+    FileTree -->|"Add File dialog"| CreateFile["POST /api/project-file"]
+    CreateFile --> FileTree
+
+    CodeArea -->|"Ctrl+S / Cmd+S"| SaveFile["PUT /api/code\n{fileId, content}"]
+    SaveFile -->|"✅ Toast: Saved"| CodeArea
+
+    Header -->|"Open Browser"| PreviewPanel
+    PreviewPanel -->|"iframe src"| RawAPI["GET /api/file/{projectId}/{fileName}"]
+    PreviewPanel -->|"Open External"| BrowserView["🌍 Public Browser View\n/browser/[username]/[projectId]/[file]"]
 ```
 ---
 
@@ -185,13 +238,16 @@ flowchart TD
    npm install
    ```
 
-3. Set up environment variables: Create a .env.local file in the root directory and add the following:
+3. Set up environment variables: Create a `.env` file in the root directory and add the following:
 
    ```bash
     MONGODB_URI=your_mongodb_connection_string
     NEXTAUTH_SECRET=your_nextauth_secret
-    EMAIL_USER=your_email_address
-    EMAIL_PASS=your_email_password
+    NEXTAUTH_URL=http://localhost:3000
+    NEXT_PUBLIC_BASE_URL=http://localhost:3000
+    FORGOT_PASSWORD_SECRET_KEY=your_forgot_password_secret
+    EMAIL_USER=your_gmail_address
+    EMAIL_PASS=your_gmail_app_password
    ```
 
 4. Start the development server:
@@ -230,8 +286,10 @@ flowchart TD
 ![Editor](./public/Screenshots/8.png)
 
 
-## Future Enhnacements
+## Future Enhancements
 
-- **Dark Mode**: Add dark mode support.
-- **Multi-Language Support**: Add support for multiple programming languages.
-- **Collaborative Editing**: Add support for collaborative editing.
+- **Multi-Language Support**: Add support for additional programming languages (Python, TypeScript, etc.) with server-side execution.
+- **Collaborative Editing**: Real-time multi-user editing with WebSockets.
+- **File Delete & Rename**: Add ability to delete and rename files from the sidebar.
+- **Project Delete**: Add ability to delete projects from the dashboard.
+- **Version History**: Track and restore previous file versions.

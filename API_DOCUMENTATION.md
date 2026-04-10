@@ -783,47 +783,116 @@ PUT /api/code
 
 ## API Architecture Diagram
 
+```mermaid
+graph TD
+    subgraph CLIENT["🖥️ Client Layer"]
+        Browser["Browser\nNext.js Frontend + CodeMirror"]
+    end
+
+    subgraph MIDDLEWARE["🛡️ Middleware Layer"]
+        Auth_MW["next-auth/middleware\nJWT Session Validation\nProtected: /dashboard/*, /editor/*"]
+    end
+
+    subgraph API["⚡ API Route Handlers"]
+        direction LR
+        Auth["/api/auth/*\nregister · login\nforgot-pw · reset-pw"]
+        Project["/api/project\nCreate · Read\nUpdate · Paginate"]
+        Code["/api/code\nGET file content\nPUT update content"]
+        ProjectFile["/api/project-file\nCreate file\nList files"]
+    end
+
+    subgraph FILE_SERVE["📄 File Serving"]
+        RawFile["/api/file/{projectId}/{fileName}\nServes raw HTML / CSS / JS\nAuto-rewrites relative URLs"]
+    end
+
+    subgraph DB["🗄️ Database Layer — MongoDB"]
+        Users[("Users")]
+        Projects[("Projects")]
+        Files[("Files")]
+
+        Users -->|"1 : N"| Projects
+        Projects -->|"1 : N"| Files
+    end
+
+    Browser -->|"HTTP Requests"| Auth_MW
+    Auth_MW -->|"Session Validated"| API
+    Auth_MW -->|"Public Routes"| Auth
+    Browser -->|"iframe preview"| RawFile
+
+    Auth -->|"Read / Write"| Users
+    Project -->|"CRUD"| Projects
+    Code -->|"Read / Write"| Files
+    ProjectFile -->|"Create / List"| Files
+    RawFile -->|"Read"| Files
+
+    style CLIENT fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f1f5f9
+    style MIDDLEWARE fill:#1e293b,stroke:#facc15,stroke-width:2px,color:#f1f5f9
+    style API fill:#1e293b,stroke:#a78bfa,stroke-width:2px,color:#f1f5f9
+    style FILE_SERVE fill:#1e293b,stroke:#34d399,stroke-width:2px,color:#f1f5f9
+    style DB fill:#1e293b,stroke:#fb923c,stroke-width:2px,color:#f1f5f9
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         CLIENT (Browser)                        │
-│                  Next.js Frontend + CodeMirror                  │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      MIDDLEWARE LAYER                           │
-│         next-auth/middleware (JWT session validation)           │
-│         Protected: /dashboard/*, /editor/*                     │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     API ROUTE HANDLERS                          │
-│                                                                 │
-│  ┌─────────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
-│  │   /auth/*   │  │/project  │  │  /code   │  │/project-   │  │
-│  │  register   │  │  CRUD    │  │ GET/PUT  │  │   file     │  │
-│  │  login      │  │ paginate │  │ content  │  │ create/    │  │
-│  │  forgot-pw  │  │          │  │          │  │   list     │  │
-│  │  reset-pw   │  │          │  │          │  │            │  │
-│  └──────┬──────┘  └────┬─────┘  └────┬─────┘  └─────┬──────┘  │
-│         │              │             │               │          │
-│  ┌──────┴──────────────┴─────────────┴───────────────┴──────┐  │
-│  │                        /file/*                            │  │
-│  │          Raw file serving (HTML/CSS/JS preview)           │  │
-│  └──────────────────────────┬────────────────────────────────┘  │
-└─────────────────────────────┼───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    DATABASE LAYER (MongoDB)                      │
-│                                                                 │
-│        ┌────────┐     ┌──────────┐     ┌────────┐              │
-│        │ Users  │────▶│ Projects │────▶│ Files  │              │
-│        └────────┘     └──────────┘     └────────┘              │
-│                                                                 │
-│         Mongoose ODM  •  Cached Connections  •  Indexing        │
-└─────────────────────────────────────────────────────────────────┘
+
+### Request Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant Middleware
+    participant API as API Route
+    participant DB as MongoDB
+
+    User->>Browser: Interact with PixelIDE
+    Browser->>Middleware: HTTP Request + Session Cookie
+
+    alt Protected Route
+        Middleware->>Middleware: Validate JWT Session
+        alt Valid Session
+            Middleware->>API: Forward Request
+            API->>DB: Query / Mutate
+            DB-->>API: Result
+            API-->>Browser: JSON Response
+        else Invalid / No Session
+            Middleware-->>Browser: 401 Unauthorized
+        end
+    else Public Route
+        Middleware->>API: Forward Request
+        API->>DB: Query / Mutate
+        DB-->>API: Result
+        API-->>Browser: JSON Response
+    end
+```
+
+### Password Reset Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client
+    participant ForgotPW as /api/auth/forgot-password
+    participant Email as Nodemailer
+    participant VerifyToken as /api/auth/verify-forgot-password-token
+    participant ResetPW as /api/auth/reset-password
+    participant DB as MongoDB
+
+    User->>Client: Click "Forgot Password"
+    Client->>ForgotPW: POST { email }
+    ForgotPW->>DB: Find user by email
+    DB-->>ForgotPW: User record
+    ForgotPW->>ForgotPW: Sign JWT (1hr expiry)
+    ForgotPW->>Email: Send reset link
+    Email-->>User: Email with reset URL
+
+    User->>Client: Click reset link
+    Client->>VerifyToken: POST { token }
+    VerifyToken->>VerifyToken: Verify JWT signature & expiry
+    VerifyToken-->>Client: { userId, expired: false }
+
+    User->>Client: Enter new password
+    Client->>ResetPW: POST { password, userId }
+    ResetPW->>DB: Update password (bcrypt hashed)
+    DB-->>ResetPW: Success
+    ResetPW-->>Client: "Password reset successfully"
 ```
 
 ---

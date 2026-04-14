@@ -47,7 +47,7 @@ All API routes are located under `/api/` and follow the **Next.js App Router** c
 | Environment | URL |
 |---|---|
 | **Local Development** | `http://localhost:3000/api` |
-| **Production** | `https://<your-domain>/api` |
+| **Production** | `https://pixel-ide.vercel.app/api` |
 
 ---
 
